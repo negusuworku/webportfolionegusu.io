@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mr. Negusu GEBRMICHAEL – Portfolio Dashboard</title>
+<style>
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin:0; padding:0; background:#f0f8ff; color:#333; }
+
+  /* Hidden content until login */
+  #mainContent { display:none; opacity:0; transition:opacity 1s ease-in; }
+
+  a { color:white; text-decoration:none; border-bottom:1px solid transparent; transition:0.3s; }
+  a:hover { border-bottom:1px solid white; }
+
+  header { background:#1e90ff; color:#fff; padding:2rem; text-align:center; position:relative; }
+  header h1 { margin:0; font-size:2rem; }
+  header p { font-size:1.1rem; margin:0.5rem 0; }
+  .profile-photo { width:120px; height:120px; border-radius:50%; border:4px solid white; object-fit:cover; margin:1rem auto; display:block; }
+  .logout { background:white; color:#1e90ff; border:none; padding:6px 12px; border-radius:5px; cursor:pointer; transition:0.3s; }
+  .logout:hover { background:#104e8b; color:white; }
+
+  section { padding:2rem; max-width:1100px; margin:auto; }
+  h2 { color:#1e90ff; border-bottom:2px solid #1e90ff; padding-bottom:0.5rem; }
+  h3 { color:#104e8b; margin-top:1.5rem; cursor:pointer; }
+  ul { list-style:none; padding-left:0; }
+  ul li { margin-bottom:0.5rem; padding-left:0.5rem; font-weight:bold; color:#1e90ff; position:relative; }
+  ul li::before { content:"•"; display:inline-block; width:1em; margin-left:-1em; }
+  ul li a { color:#1e90ff; text-decoration:none; }
+
+  /* Collapsible */
+  .collapsible { background:#cce6ff; border:none; color:#333; padding:0.5rem 1rem; width:100%; text-align:left; font-size:1rem; margin-bottom:0.5rem; border-radius:5px; cursor:pointer; transition: background 0.3s; }
+  .collapsible:hover, .active { background:#99ccff; }
+  .content { max-height:0; overflow:hidden; transition:max-height 0.3s ease; padding-left:1rem; background:#e6f2ff; border-left:3px solid #1e90ff; border-radius:0 5px 5px 0; margin-bottom:1rem; }
+
+  /* Table */
+  table { width:100%; border-collapse:collapse; margin-top:0.5rem; background:#e6f2ff; }
+  th, td { border:1px solid #1e90ff; padding:0.5rem; text-align:left; transition: background 0.2s; }
+  th { background:#cce6ff; color:#104e8b; }
+  tr:hover td { background:#d9f0ff; }
+
+  /* Table row fade-in and hover lift */
+  tbody tr {
+    opacity:0;
+    transform: translateY(10px);
+    transition: opacity 0.4s ease, transform 0.4s ease, box-shadow 0.2s ease;
+  }
+  tbody tr.visible { opacity:1; transform: translateY(0); }
+  tbody tr:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
+  /* File Upload */
+  .file-upload { display:inline-block; position:relative; overflow:hidden; background:#1e90ff; color:white; padding:0.4rem 1rem; border-radius:5px; font-size:0.9rem; margin-right:0.5rem; margin-bottom:0.3rem; transition:0.3s; cursor:pointer; }
+  .file-upload input[type=file] { position:absolute; left:0; top:0; opacity:0; width:100%; height:100%; cursor:pointer; }
+  .file-upload span::after { content:attr(data-tooltip); visibility:hidden; opacity:0; width:max-content; max-width:200px; background:#104e8b; color:#fff; text-align:center; border-radius:5px; padding:0.3rem 0.5rem; position:absolute; z-index:10; bottom:125%; left:50%; transform:translateX(-50%); pointer-events:none; font-size:0.8rem; white-space:nowrap; transition:opacity 0.3s; }
+  .file-upload span::before { content:""; position:absolute; bottom:115%; left:50%; transform:translateX(-50%); border-width:5px; border-style:solid; border-color:#104e8b transparent transparent transparent; opacity:0; transition:opacity 0.3s; }
+  .file-upload:hover span::after, .file-upload:hover span::before { visibility:visible; opacity:1; }
+  .file-upload:hover { background:#104e8b; }
+
+  /* Login Overlay */
+  #loginOverlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:flex; justify-content:center; align-items:center; z-index:1000; }
+  #loginBox { background:#fff; padding:2rem; border-radius:10px; max-width:400px; width:90%; box-shadow:0 0 10px rgba(0,0,0,0.3); text-align:center; }
+  #loginBox h2 { margin-top:0; color:#1e90ff; }
+  #loginBox input { width:100%; padding:0.5rem; margin:0.5rem 0 1rem 0; border:1px solid #ccc; border-radius:5px; }
+  #loginBox button { background:#1e90ff; color:#fff; border:none; padding:0.5rem 1rem; border-radius:5px; cursor:pointer; width:100%; font-size:1rem; }
+  #loginBox button:hover { background:#104e8b; }
+  #loginError { color:red; font-size:0.9rem; display:none; margin-bottom:0.5rem; }
+
+  footer { background:#1e90ff; color:#fff; text-align:center; padding:1rem; position:relative; }
+  #reflection p { text-align:justify; }
+</style>
+</head>
+<body>
+
+<!-- Login Overlay -->
+<div id="loginOverlay">
+  <div id="loginBox">
+    <h2>Admin Login</h2>
+    <div id="loginError">Incorrect username or password</div>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <div class="file-upload" style="margin-bottom:1rem;">
+      <span data-tooltip="Upload Profile Image">Upload Profile Image<input type="file" accept="image/*"></span>
+    </div>
+    <button onclick="login()">Login</button>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div id="mainContent">
+
+<header>
+  <button onclick="logout()" class="logout" style="position:absolute; top:20px; right:20px;">Logout</button>
+  <img src="img/negusu.jpg" alt="Mr. Negusu Gebrmichael" class="profile-photo">
+  <h1>Mr. Negusu GEBRMICHAEL</h1>
+  <p>Data Science | Public Health Emergency Field Epidemiology | Digital Media & Web Development | IT Specialist</p>
+  <p>LinkedIn: <a href="https://www.linkedin.com/in/gebrmichael-negusu-worku-1319a6232/" target="_blank">Visit Profile</a></p>
+</header>
+
+<section id="reflection">
+  <h2>Reflection</h2>
+  <p>
+    The Digital Media and Web Development course has been transformative in shaping my technical and professional skills. 
+    Through structured assignments and projects, I learned the importance of meticulous planning, time management, and professional branding, 
+    reinforced by industry-standard courses and lectures. Designing my portfolio website, selecting 10 key portfolio pieces, and practicing 
+    effective networking through tailored messages strengthened both my technical proficiency and communication skills across various 
+    digital platforms, including my portfolio and LinkedIn.
+  </p>
+  <p>
+    This course emphasized practical tools such as Adobe digital imaging, project management, e-commerce, advanced web design, HTML, 
+    JavaScript, PHP, SEO, web analytics, and UX/UI design, reinforcing how organization and digital literacy contribute to a strong professional identity. 
+    By integrating resume and cover letter development, content mapping, and portfolio building, I obtained hands-on experience in presenting 
+    myself as a cohesive and marketable professional in the digital space.
+  </p>
+  <p>
+    Additionally, the program has been instrumental in helping me transform traditional health data into real-time, paperless 
+    data-sharing systems for end users, partner organizations, and decision-makers, enabling timely access to analyzed data for informed 
+    decision-making and evidence-based outbreak control. It enhanced my ability to design dashboards, integrate multiple data streams, 
+    and present actionable insights efficiently via GitHub platforms.
+  </p>
+
+  <h3>Software & Tools I Use:</h3>
+  <ul>
+    <li>Figma</li>
+    <li>Canva</li>
+    <li>Adobe Illustrator</li>
+    <li>SEMrush</li>
+    <li>WordPress</li>
+    <li>MAMP for PHP</li>
+    <li>Hotjar</li>
+    <li>Dreamweaver</li>
+    <li>HTML, CSS, JavaScript</li>
+    <li><a href="https://sproutsocial.com/pricing/" target="_blank">Sprout Social</a></li>
+    <li><a href="https://moz.com/learn/seo/analytics-reporting" target="_blank">Moz Analytics & SEO Tools</a></li>
+    <li>Shopify</li>
+  </ul>
+</section>
+
+<section id="courses">
+  <h2>Course & Product Dashboard</h2>
+  <div id="coursesContainer"></div>
+</section>
+
+<footer>
+  <p>March 11, 2026, Mr. Negusu GEBRMICHAEL</p>
+</footer>
+
+<script>
+const courseData = [
+  {section:"Completed Courses (10)", courses:[
+      {name:"Digital Imaging with Illustrator", tools:"Adobe Illustrator, Canva, Figma", completed:"Yes", visuals:"Yes"},
+      {name:"HTML", tools:"HTML, CSS, JavaScript", completed:"Yes", visuals:"Yes"},
+      {name:"Advanced Web Design", tools:"Dreamweaver, HTML, CSS, JS, Figma", completed:"Yes", visuals:"Yes"},
+      {name:"JavaScript", tools:"HTML, CSS, JavaScript", completed:"Yes", visuals:"Yes"},
+      {name:"Web SEO", tools:"SEMrush, Moz Analytics", completed:"Yes", visuals:"Yes"},
+      {name:"PHP", tools:"MAMP for PHP, HTML, CSS", completed:"Yes", visuals:"Yes"},
+      {name:"E-Commerce", tools:"Shopify, WordPress", completed:"Yes", visuals:"Yes"},
+      {name:"Project Management", tools:"Excel, Google Workspace, Trello", completed:"Yes", visuals:"Yes"},
+      {name:"Web Analytics", tools:"Hotjar, Google Analytics", completed:"Yes", visuals:"Yes"},
+      {name:"Web UX/UI Design", tools:"Figma, HTML, CSS, JavaScript", completed:"Yes", visuals:"Yes"}
+  ]},
+  {section:"Ongoing Courses (1)", courses:[{name:"Web Portfolio", tools:"", completed:"No", visuals:"No"}]},
+  {section:"Remaining Courses (3)", courses:[
+      {name:"Career Strategies", tools:"LinkedIn, Resume, Cover Letter", completed:"No", visuals:"No"},
+      {name:"Digital Imaging with Photoshop", tools:"Adobe Photoshop", completed:"No", visuals:"No"},
+      {name:"Office Applications and Google Suite", tools:"Office, Google Suite", completed:"No", visuals:"No"}
+  ]}
+];
+
+const container = document.getElementById("coursesContainer");
+courseData.forEach(section => {
+  const btn = document.createElement("button");
+  btn.className = "collapsible";
+  btn.textContent = section.section;
+  container.appendChild(btn);
+
+  const content = document.createElement("div");
+  content.className = "content";
+
+  let tableHTML = `<table><thead><tr>
+  <th>#</th><th>Course/Product</th><th>Tools/Skills</th><th>Completed?</th><th>Visuals Available?</th><th>Upload Slots</th></tr></thead><tbody>`;
+  section.courses.forEach((c,i)=>{
+    tableHTML+=`<tr>
+      <td>${i+1}</td>
+      <td contenteditable="true">${c.name}</td>
+      <td contenteditable="true">${c.tools}</td>
+      <td>${c.completed}</td>
+      <td>${c.visuals}</td>
+      <td>
+        <label class="file-upload"><span data-tooltip="Upload your Final Project">Final Project<input type="file"></span></label>
+        <label class="file-upload"><span data-tooltip="Upload your Assignments">Assignments<input type="file"></span></label>
+        <label class="file-upload"><span data-tooltip="Upload your Visuals">Visuals<input type="file"></span></label>
+      </td>
+    </tr>`;
+  });
+  tableHTML += `</tbody></table>`;
+  content.innerHTML = tableHTML;
+  container.appendChild(content);
+});
+
+// Collapsible toggle with row fade-in
+document.querySelectorAll(".collapsible").forEach(btn=>{
+  btn.addEventListener("click", function(){
+    this.classList.toggle("active");
+    const content = this.nextElementSibling;
+    if(content.style.maxHeight) {
+      content.style.maxHeight = null;
+      content.querySelectorAll("tbody tr").forEach(row=>row.classList.remove("visible"));
+    } else {
+      content.style.maxHeight = content.scrollHeight + "px";
+      content.querySelectorAll("tbody tr").forEach((row,i)=>{
+        setTimeout(()=>row.classList.add("visible"), i*100);
+      });
+    }
+  });
+});
+
+// Login / Logout
+function login(){
+  const username=document.getElementById("username").value;
+  const password=document.getElementById("password").value;
+  const overlay=document.getElementById("loginOverlay");
+  const main=document.getElementById("mainContent");
+  const error=document.getElementById("loginError");
+  if(username==="admin" && password==="123"){
+    overlay.style.display="none";
+    main.style.display="block";
+    setTimeout(()=>{main.style.opacity=1;},50);
+  } else error.style.display="block";
+}
+function logout(){
+  document.getElementById("loginOverlay").style.display="flex";
+  const main=document.getElementById("mainContent");
+  main.style.opacity=0;
+  setTimeout(()=>{main.style.display="none";},500);
+}
+</script>
+</body>
+</html>
